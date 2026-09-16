@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  maxbot:
+    depends_on:
+      database:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: "Dockerfile"
+      target: "maxbot"
+    env_file:
+      - ".env"
+    volumes:
+      - "./bot/:/bot/"
+      - "./database/:/app/database/"
+    networks:
+      - local
+
+  database:
+    image: mariadb:10.5
+    restart: unless-stopped
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    command:
+      - mariadbd
+      - --innodb-use-native-aio=0
+      - --innodb-flush-log-at-trx-commit=2
+    environment:
+      MARIADB_USER: "${DB_USER}"
+      MARIADB_PASSWORD: "${DB_PASS}"
+      MARIADB_DATABASE: "${DB_NAME}"
+      MARIADB_ROOT_PASSWORD: "${DB_PASS}"
+    ports:
+      - '3306:3306'
+    volumes:
+      - db_data:/var/lib/mysql
+      - "./database/dumps/:/docker-entrypoint-initdb.d:ro"
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 60s
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - local
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - "${ADMINER_PORT}:8080"
+    depends_on:
+      - database
+    networks:
+      - local
+
+  backup:
+    image: debian:bookworm-slim
+    restart: unless-stopped
+    environment:
+      DB_HOST: database
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+    volumes:
+      - ./database/backups:/backup
+    depends_on:
+      database:
+        condition: service_healthy
+    command: >
+      bash -c "
+      apt-get update &&
+      apt-get install -y mariadb-client &&
+      echo 'Waiting for database with authentication...' &&
+      until mariadb-admin ping -h $$DB_HOST -u$$DB_USER -p$$DB_PASS --silent; do sleep 5; done &&
+      echo 'Database is up and authenticated!' &&
+      while true; do
+        mysqldump -h $$DB_HOST -u$$DB_USER -p$$DB_PASS $$DB_NAME | gzip > /backup/backup_$$(date +%Y%m%d_%H%M).sql.gz;
+        find /backup -type f -name '*.gz' -mtime +7 -delete;
+        sleep 21600;
+      done
+      "
+    networks:
+      - local
+
+networks:
+  local:
+
+volumes:
+  db_data:
