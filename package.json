@@ -1,6 +1,9 @@
 {
   "dependencies": {
-    "@maxhub/max-bot-api": "^0.3.1"
+    "@maxhub/max-bot-api": "^0.3.1",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "typescript": "^7.0.2"
