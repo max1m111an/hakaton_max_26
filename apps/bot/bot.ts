@@ -1,16 +1,13 @@
 import { Bot } from '@maxhub/max-bot-api';
+import dotenv from 'dotenv';
+dotenv.config({ path: '../../.env' });
 
-// Создайте экземпляр класса Bot и передайте ему токен 
-const bot = new Bot(process.env.BOT_TOKEN);
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+const bot = new Bot(process.env.BOT_TOKEN!);
 
-// Добавьте слушатели обновлений
-// MAX Bot API будет вызывать их, когда пользователи взаимодействуют с ботом
 
-// Обработчик для команды '/start'
 bot.command('start', (ctx) => ctx.reply('Добро пожаловать!'));
 
-// Обработчик для любого другого сообщения
 bot.on('message_created', (ctx) => ctx.reply('Новое сообщение'));
 
-// Теперь можно запустить бота, чтобы он подключился к серверам MAX и ждал обновлений
 bot.start();
