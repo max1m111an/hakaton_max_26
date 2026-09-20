@@ -16,7 +16,7 @@ export default sql;
 
 /*
 usage:
-import sql from '@database/db_engine';
+import sql from '@database/db_engine.ts';
 
 export default async function getAll() {
   const result = await sql`SELECT * FROM table`;
