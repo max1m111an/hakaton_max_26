@@ -1,6 +1,7 @@
 import postgres from "postgres";
 import { env } from "@utils/env.ts";
 
+
 const DB_SCHEME: string = env.getEnv("DB_SCHEME");
 const DB_USER: string = env.getEnv("DB_USER");
 const DB_PASS: string = env.getEnv("DB_PASS");
@@ -15,9 +16,9 @@ export default sql;
 
 /*
 usage:
-import sql from '@/apps/database/db_engine';
+import sql from '@database/db_engine';
 
-export default async function getAllTable() {
+export default async function getAll() {
   const result = await sql`SELECT * FROM table`;
 }
 */

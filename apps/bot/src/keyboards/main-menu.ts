@@ -1,5 +1,6 @@
 import { Keyboard } from "@maxhub/max-bot-api";
-import { CALLBACKS } from "../constants/callbacks.js";
+import { CALLBACKS } from "@bot/constants/callbacks.js";
+
 
 export function mainMenuKeyboard(): ReturnType<typeof Keyboard.inlineKeyboard> {
     return Keyboard.inlineKeyboard([
