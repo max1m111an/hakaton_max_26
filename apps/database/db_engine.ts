@@ -1,13 +1,13 @@
 import postgres from "postgres";
-import { env } from "@utils/env.ts";
+import { getEnv } from "@utils/env.ts";
 
 
-const DB_SCHEME: string = env.getEnv("DB_SCHEME");
-const DB_USER: string = env.getEnv("DB_USER");
-const DB_PASS: string = env.getEnv("DB_PASS");
-const DB_NAME: string = env.getEnv("DB_NAME");
-const DB_HOST: string = env.getEnv("DB_HOST");
-const DB_PORT: string = env.getEnv("DB_PORT");
+const DB_SCHEME: string = getEnv("DB_SCHEME");
+const DB_USER: string = getEnv("DB_USER");
+const DB_PASS: string = getEnv("DB_PASS");
+const DB_NAME: string = getEnv("DB_NAME");
+const DB_HOST: string = getEnv("DB_HOST");
+const DB_PORT: string = getEnv("DB_PORT");
 
 const DB_URL: string = `${DB_SCHEME}://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
 
