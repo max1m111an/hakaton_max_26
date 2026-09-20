@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-dotenv.config({ path: "../../.env" });
+dotenv.config({ path: "@/.env" });
 
 function requiredEnv(name: string): string {
     const value = process.env[name];
@@ -11,7 +11,7 @@ function requiredEnv(name: string): string {
 }
 
 export const env = {
-    get botToken(): string {
-        return requiredEnv("BOT_TOKEN");
+    getEnv: function(name: string): string {
+      return requiredEnv(name);
     },
 };
