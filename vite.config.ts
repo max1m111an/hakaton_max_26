@@ -6,10 +6,10 @@ export default defineConfig({
     plugins: [ react() ],
     resolve: {
         alias: {
-            "@": path.resolve(__dirname, "./apps"),
-            "@bot": path.resolve(__dirname, "./apps/bot"),
-            "@utils": path.resolve(__dirname, "./apps/utils"),
-            "@database": path.resolve(__dirname, "./apps/database"),
+            "@": path.resolve(import.meta.dirname, "./apps"),
+            "@bot": path.resolve(import.meta.dirname, "./apps/bot"),
+            "@utils": path.resolve(import.meta.dirname, "./apps/utils"),
+            "@database": path.resolve(import.meta.dirname, "./apps/database"),
         },
     },
     build: {
@@ -18,7 +18,6 @@ export default defineConfig({
     server: {
         fs: {
             strict: false,
-        }
-    }
-  }
+        },
+    },
 });

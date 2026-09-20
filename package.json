@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "vite --host 0.0.0.0 --port 3000",
     "build": "tsc -b && vite build",
     "lint": "eslint ",
     "lint:fix": "eslint --fix",
@@ -19,13 +20,13 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.2",
-    "eslint": "^10.11.0",
+    "eslint": "^9.7.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.0",
-    "@vitejs/plugin-react": "^4.3.4"
+    "@vitejs/plugin-react": "^6.0.0"
   }
 }
