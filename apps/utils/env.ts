@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 
+
 dotenv.config({ path: "@/.env" });
 
 function requiredEnv(name: string): string {
@@ -12,6 +13,6 @@ function requiredEnv(name: string): string {
 
 export const env = {
     getEnv: function(name: string): string {
-      return requiredEnv(name);
+        return requiredEnv(name);
     },
 };

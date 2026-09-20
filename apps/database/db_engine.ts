@@ -1,5 +1,5 @@
 import postgres from "postgres";
-import { env } from "../utils/env.js";
+import { env } from "@utils/env.ts";
 
 const DB_SCHEME: string = env.getEnv("DB_SCHEME");
 const DB_USER: string = env.getEnv("DB_USER");
