@@ -3,24 +3,30 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "lint": "eslint apps",
-    "lint:fix": "eslint apps --fix"
+    "dev": "vite",
+    "start": "vite --host 0.0.0.0 --port 3000",
+    "build": "tsc -b && vite build",
+    "lint": "eslint ",
+    "lint:fix": "eslint --fix",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@maxhub/max-bot-api": "^0.3.1",
     "dotenv": "^17.4.2",
     "pg": "^8.23.0",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "vite": "^8.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.2",
-    "eslint": "^10.11.0",
+    "eslint": "^9.7.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.70.0"
+    "typescript-eslint": "^8.70.0",
+    "@vitejs/plugin-react": "^6.0.0"
   }
 }

@@ -1,4 +1,4 @@
-FROM node:18-alpine as maxbot
+FROM node:22-alpine as maxbot
 
 WORKDIR /app
 
@@ -10,4 +10,4 @@ COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]

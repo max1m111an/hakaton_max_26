@@ -11,9 +11,11 @@ services:
       target: "maxbot"
     env_file:
       - ".env"
+    ports:
+      - "3000:3000"
     volumes:
-      - "./bot/:/bot/"
-      - "./database/:/app/database/"
+      - "./apps/bot/:/bot/"
+      - "./apps/database/:/app/database/"
     networks:
       - local
 

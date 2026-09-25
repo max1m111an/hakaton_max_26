@@ -1,6 +1,7 @@
 import type { Bot } from "@maxhub/max-bot-api";
 import { CALLBACKS } from "../constants/callbacks.js";
 
+
 const MENU_SECTIONS = [
     { payload: CALLBACKS.MENU_ORTHOEPY, title: "Орфоэпия" },
     { payload: CALLBACKS.MENU_VOCAB, title: "Словарные слова" },

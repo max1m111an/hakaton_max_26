@@ -54,3 +54,8 @@ packages/react-devtools-cdt-mcp/dist
 # env
 *.env
 !.env.example
+
+# db
+*.gz
+*.sql
+*.xlsx
