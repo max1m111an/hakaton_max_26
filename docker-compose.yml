@@ -1,89 +1,88 @@
-version: "3.9"
-
 services:
   maxbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ".env"
+    environment:
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_SCHEME: postgres
     depends_on:
       database:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: "Dockerfile"
-      target: "maxbot"
-    env_file:
-      - ".env"
-    ports:
-      - "3000:3000"
-    volumes:
-      - "./apps/bot/:/bot/"
-      - "./apps/database/:/app/database/"
     networks:
       - local
 
   database:
-    image: mariadb:10.5
+    image: postgres:17-alpine
     restart: unless-stopped
-    security_opt:
-      - seccomp:unconfined
-      - apparmor:unconfined
-    command:
-      - mariadbd
-      - --innodb-use-native-aio=0
-      - --innodb-flush-log-at-trx-commit=2
     environment:
-      MARIADB_USER: "${DB_USER}"
-      MARIADB_PASSWORD: "${DB_PASS}"
-      MARIADB_DATABASE: "${DB_NAME}"
-      MARIADB_ROOT_PASSWORD: "${DB_PASS}"
+      POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
+      POSTGRES_PASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
+      POSTGRES_DB: "${DB_NAME:?Set DB_NAME in .env}"
     ports:
-      - '3306:3306'
+      - "${DB_PORT:-5432}:5432"
     volumes:
-      - db_data:/var/lib/mysql
-      - "./database/dumps/:/docker-entrypoint-initdb.d:ro"
+      - postgres_data:/var/lib/postgresql/data
+      - "./database/dumps:/docker-entrypoint-initdb.d:ro"
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      start_period: 60s
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      test: [ "CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"" ]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 12
     networks:
       - local
 
   adminer:
-    image: adminer:latest
-    restart: always
+    image: adminer:4.8.1
+    restart: unless-stopped
+    environment:
+      ADMINER_DESIGN: dracula
     ports:
-      - "${ADMINER_PORT}:8080"
+      - "${ADMINER_PORT:-8080}:8080"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     networks:
       - local
 
   backup:
-    image: debian:bookworm-slim
+    image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      DB_HOST: database
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
+      PGHOST: database
+      PGPORT: 5432
+      PGUSER: "${DB_USER:?Set DB_USER in .env}"
+      PGPASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
+      PGDATABASE: "${DB_NAME:?Set DB_NAME in .env}"
     volumes:
-      - ./database/backups:/backup
+      - "./database/backups:/backup"
     depends_on:
       database:
         condition: service_healthy
-    command: >
-      bash -c "
-      apt-get update &&
-      apt-get install -y mariadb-client &&
-      echo 'Waiting for database with authentication...' &&
-      until mariadb-admin ping -h $$DB_HOST -u$$DB_USER -p$$DB_PASS --silent; do sleep 5; done &&
-      echo 'Database is up and authenticated!' &&
-      while true; do
-        mysqldump -h $$DB_HOST -u$$DB_USER -p$$DB_PASS $$DB_NAME | gzip > /backup/backup_$$(date +%Y%m%d_%H%M).sql.gz;
-        find /backup -type f -name '*.gz' -mtime +7 -delete;
-        sleep 21600;
-      done
-      "
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        echo "Waiting for database..."
+        until pg_isready -q -h "$$PGHOST" -p "$$PGPORT" -U "$$PGUSER" -d "$$PGDATABASE"; do
+          sleep 5
+        done
+        echo "Database is ready"
+        while true; do
+          backup_file="/backup/backup_$$(date +%Y%m%d_%H%M%S).sql.gz"
+          if pg_dump --host "$$PGHOST" --port "$$PGPORT" --username "$$PGUSER" --dbname "$$PGDATABASE" --format=plain --no-owner --no-privileges | gzip > "$$backup_file"; then
+            find /backup -type f -name '*.gz' -mtime +7 -delete
+          else
+            rm -f "$$backup_file"
+          fi
+          sleep 21600
+        done
     networks:
       - local
 
@@ -91,4 +90,4 @@ networks:
   local:
 
 volumes:
-  db_data:
+  postgres_data:
