@@ -1,4 +1,5 @@
-import { createSQLSchema, DBEntity, DBInsert } from "@database/db_schema.ts";
+import { createSQLSchema } from "@database/models/db_schema.ts";
+import type { DBEntity, DBInsert } from "@database/models/db_schema.ts";
 
 
 export interface VocabulariesModel extends DBEntity {

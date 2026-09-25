@@ -1,10 +1,6 @@
 import { Bot } from "@maxhub/max-bot-api";
 import { getEnv } from "@utils/env.ts";
 import { registerHandlers } from "@bot/handlers/index.js";
-
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 const main = new Bot(getEnv("BOT_TOKEN"));
 
 registerHandlers(main);

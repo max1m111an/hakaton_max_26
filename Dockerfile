@@ -1,13 +1,13 @@
-FROM node:22-alpine as maxbot
+FROM node:22-alpine AS maxbot
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
-EXPOSE 3000
+ENV NODE_EXTRA_CA_CERTS=/app/certs/russian-trusted-root-ca.crt
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "start:bot"]

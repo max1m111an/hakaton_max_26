@@ -168,8 +168,6 @@ yarn-error.log
 cypress.config.*.timestamp-*
 jest.config.*.timestamp-*
 jsconfig.json
-tsconfig.*.json
-tsconfig.json
 vitest.config.*.timestamp-*
 
 *.xlsx
