@@ -50,6 +50,42 @@ services:
     networks:
       - local
 
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: database
+      PGPORT: 5432
+      PGUSER: "${DB_USER:?Set DB_USER in .env}"
+      PGPASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
+      PGDATABASE: "${DB_NAME:?Set DB_NAME in .env}"
+    volumes:
+      - "./database/backups:/backup"
+    depends_on:
+      database:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        echo "Waiting for database..."
+        until pg_isready -q -h "$$PGHOST" -p "$$PGPORT" -U "$$PGUSER" -d "$$PGDATABASE"; do
+          sleep 5
+        done
+        echo "Database is ready"
+        while true; do
+          backup_file="/backup/backup_$$(date +%Y%m%d_%H%M%S).sql.gz"
+          if pg_dump --host "$$PGHOST" --port "$$PGPORT" --username "$$PGUSER" --dbname "$$PGDATABASE" --format=plain --no-owner --no-privileges | gzip > "$$backup_file"; then
+            find /backup -type f -name '*.gz' -mtime +7 -delete
+          else
+            rm -f "$$backup_file"
+          fi
+          sleep 21600
+        done
+    networks:
+      - local
+
 networks:
   local:
 
