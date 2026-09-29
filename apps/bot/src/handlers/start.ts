@@ -1,7 +1,7 @@
-import type { Bot } from "@maxhub/max-bot-api";
-import { ensureUser } from "../user-service.js";
-import { MAIN_MENU_TEXT } from "../texts/main-menu.js";
-import { mainMenuKeyboard } from "../keyboards/main-menu.js";
+﻿import type { Bot } from "@maxhub/max-bot-api";
+import { ensureUser } from "@bot/user-service.js";
+import { MAIN_MENU_TEXT } from "@bot/texts/main-menu.js";
+import { mainMenuKeyboard } from "@bot/keyboards/main-menu.js";
 
 export function registerStart(bot: Bot): void {
     bot.command("start", async (ctx) => {

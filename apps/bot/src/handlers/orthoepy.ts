@@ -1,10 +1,10 @@
-import type { Bot, Context } from "@maxhub/max-bot-api";
+﻿import type { Bot, Context } from "@maxhub/max-bot-api";
 import { Keyboard } from "@maxhub/max-bot-api";
 import {
     CALLBACKS,
     ORTHOEPY_ANSWER_PATTERN,
     ORTHOEPY_FINISH_PATTERN,
-} from "../constants/callbacks.js";
+} from "@bot/constants/callbacks.js";
 import {
     beginTrainingAnswer,
     clearTrainingSession,
@@ -18,12 +18,12 @@ import {
     loadTrainingWords,
     recordTrainingAnswer,
     updateWordWeight,
-} from "../orthoepy-service.js";
+} from "@bot/orthoepy-service.js";
 import {
     backToOrthoepyMenuKeyboard,
     orthoepyMenuKeyboard,
     trainingQuestionKeyboard,
-} from "../keyboards/orthoepy.js";
+} from "@bot/keyboards/orthoepy.js";
 import { ORTHOEPY_STATISTICS_ERROR } from "@assets/text/orthoepy.js";
 import {
     ORTHOEPY_EMPTY_TEXT,
@@ -32,9 +32,9 @@ import {
     orthoepyFeedbackText,
     orthoepyQuestionText,
     trainingResultText,
-} from "../texts/orthoepy.js";
-import { MAIN_MENU_TEXT } from "../texts/main-menu.js";
-import { mainMenuKeyboard } from "../keyboards/main-menu.js";
+} from "@bot/texts/orthoepy.js";
+import { MAIN_MENU_TEXT } from "@bot/texts/main-menu.js";
+import { mainMenuKeyboard } from "@bot/keyboards/main-menu.js";
 
 type InlineKeyboard = ReturnType<typeof Keyboard.inlineKeyboard>;
 

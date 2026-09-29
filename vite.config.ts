@@ -14,7 +14,7 @@ export default defineConfig({
         },
     },
     build: {
-        sourcemap: false, // отключит source maps в production сборке
+        sourcemap: false,
     },
     server: {
         fs: {
