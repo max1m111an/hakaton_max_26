@@ -20,7 +20,7 @@ export const ORTHOEPY_RESULT_CORRECT = "• Верных ответов:";
 export const ORTHOEPY_RESULT_ERRORS_HEADER = "⚠️ Слова, в которых ты ошибся сегодня:";
 export const ORTHOEPY_RESULT_NO_ERRORS = "✅ Ошибок не было!";
 export const ORTHOEPY_RESULT_STATS_UPDATED =
-    "Я уже обновил твою статистику и повысил вес этих слов. В следующий раз мы обязательно их отработаем!";
+    "Я уже обновил твою статистику. В следующий раз мы обязательно их отработаем!";
 export const ORTHOEPY_RESULT_ALL_GOOD =
     "Твоя статистика обновлена. Отличная работа!";
 

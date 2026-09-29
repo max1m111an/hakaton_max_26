@@ -50,7 +50,7 @@ export function orthoepyDifficultText(words: TrainingWord[]): string {
         ].join("\n");
     }
 
-    const list = words.map((word, index) => `${index + 1}. ${word.word}`).join("\n\n");
+    const list = words.map((word, index) => `${index + 1}) ${word.word}`).join("\n\n");
     return `${ORTHOEPY_DIFFICULT_TITLE}\n\n${ORTHOEPY_DIFFICULT_HEADER}\n\n${list}`;
 }
 
@@ -60,7 +60,9 @@ export function trainingResultText(result: TrainingResult): string {
         ? [
             ORTHOEPY_RESULT_ERRORS_HEADER,
             "",
-            result.wrongWords.join("\n\n"),
+            result.wrongWords
+                .map((word, index) => `${index + 1}) ${word}`)
+                .join("\n\n"),
         ]
         : [ ORTHOEPY_RESULT_NO_ERRORS ];
     const statisticsMessage = hasErrors

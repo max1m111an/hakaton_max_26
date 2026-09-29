@@ -29,7 +29,7 @@ export const PUNCTUATION_RESULT_CORRECT = "• Полностью верных �
 export const PUNCTUATION_RESULT_ERRORS_HEADER = "⚠️ Правила, в которых ты ошибался:";
 export const PUNCTUATION_RESULT_NO_ERRORS = "✅ Ошибок не было!";
 export const PUNCTUATION_RESULT_STATS_UPDATED =
-    "Я уже обновил твою статистику и повысил вес этих правил. В следующий раз мы обязательно отработаем предложения с ними!";
+    "Я уже обновил твою статистику. В следующий раз мы обязательно отработаем предложения с ними!";
 export const PUNCTUATION_RESULT_ALL_GOOD =
     "Твоя статистика обновлена. Отличная работа!";
 

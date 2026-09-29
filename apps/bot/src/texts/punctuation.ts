@@ -107,7 +107,7 @@ export function punctuationDifficultText(
         ].join("\n");
     }
 
-    const list = rules.map((rule, index) => `${index + 1}. ${rule.ruleText}`).join("\n");
+    const list = rules.map((rule, index) => `${index + 1}) ${rule.ruleText}`).join("\n");
     return `${PUNCTUATION_DIFFICULT_TITLE}\n\n${PUNCTUATION_DIFFICULT_HEADER}\n\n${list}`;
 }
 
@@ -118,7 +118,7 @@ export function punctuationSessionResultText(result: PunctuationResult): string 
             PUNCTUATION_RESULT_ERRORS_HEADER,
             "",
             result.wrongRules
-                .map((ruleText, index) => `${index + 1}. ${ruleText}`)
+                .map((ruleText, index) => `${index + 1}) ${ruleText}`)
                 .join("\n"),
         ]
         : [ PUNCTUATION_RESULT_NO_ERRORS ];

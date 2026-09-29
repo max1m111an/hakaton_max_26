@@ -56,7 +56,7 @@ export function vocabulariesDifficultText(words: VocabularyWord[]): string {
     }
 
     const list = words
-        .map((word, index) => `${index + 1}. ${displayWord(correctAnswerOf(word))}`)
+        .map((word, index) => `${index + 1}) ${displayWord(correctAnswerOf(word))}`)
         .join("\n");
 
     return `${VOCABULARIES_DIFFICULT_TITLE}\n\n${VOCABULARIES_DIFFICULT_HEADER}\n\n${list}`;
@@ -69,7 +69,7 @@ export function vocabulariesResultText(result: TrainingResult): string {
             VOCABULARIES_RESULT_ERRORS_HEADER,
             "",
             result.wrongWords
-                .map((word, index) => `${index + 1}. ${displayWord(word)}`)
+                .map((word, index) => `${index + 1}) ${displayWord(word)}`)
                 .join("\n"),
         ]
         : [ VOCABULARIES_RESULT_NO_ERRORS ];
