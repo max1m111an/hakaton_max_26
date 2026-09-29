@@ -23,22 +23,35 @@ export function vocabulariesFeedbackText(
 }
 
 export function vocabulariesDifficultText(words: VocabularyWord[]): string {
-    const list = words.length > 0
-        ? words
-            .map((word, index) => `${index + 1}. ${displayWord(correctAnswerOf(word))}`)
-            .join("\n")
-        : "Пока нет слов с положительным весом. Пройди тренировку, и здесь появятся твои сложные слова.";
+    if (words.length === 0) {
+        return [
+            VOCABULARIES_DIFFICULT_TITLE,
+            "",
+            "Пока не выявлено трудных слов.",
+            "",
+            "Пройди тренировку, и здесь появятся твои сложные слова.",
+        ].join("\n");
+    }
+
+    const list = words
+        .map((word, index) => `${index + 1}. ${displayWord(correctAnswerOf(word))}`)
+        .join("\n");
 
     return `${VOCABULARIES_DIFFICULT_TITLE}\n\nЭто слова, которые даются тебе тяжелее всего:\n\n${list}`;
 }
 
 export function vocabulariesResultText(result: TrainingResult): string {
-    const wrongWords = result.wrongWords.length > 0
-        ? result.wrongWords
-            .map((word, index) => `${index + 1}. ${displayWord(word)}`)
-            .join("\n")
-        : "Ошибок не было!";
-    const statisticsMessage = result.wrongWords.length > 0
+    const hasErrors = result.wrongWords.length > 0;
+    const errorsSection = hasErrors
+        ? [
+            "⚠️ Слова, в которых ты ошибся сегодня:",
+            "",
+            result.wrongWords
+                .map((word, index) => `${index + 1}. ${displayWord(word)}`)
+                .join("\n"),
+        ]
+        : [ "✅ Ошибок не было!" ];
+    const statisticsMessage = hasErrors
         ? "Я уже обновил твою статистику и повысил вес этих слов. В следующий раз мы обязательно их отработаем!"
         : "Твоя статистика обновлена. Отличная работа!";
 
@@ -49,9 +62,7 @@ export function vocabulariesResultText(result: TrainingResult): string {
         `• Пройдено слов: ${result.answered}`,
         `• Верных ответов: ${result.correctAnswers}`,
         "",
-        "⚠️ Слова, в которых ты ошибся сегодня:",
-        "",
-        wrongWords,
+        ...errorsSection,
         "",
         statisticsMessage,
     ].join("\n");

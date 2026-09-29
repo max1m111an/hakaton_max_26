@@ -31,7 +31,7 @@ export function vocabulariesQuestionKeyboard(
 
     rows.push([
         Keyboard.button.callback(
-            "Закончить",
+            "🛑 Закончить",
             `${CALLBACKS.VOCABULARIES_FINISH_PREFIX}${sessionId}`,
         ),
     ]);

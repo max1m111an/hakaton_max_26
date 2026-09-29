@@ -49,6 +49,7 @@ export function punctuationExplanationText(
     const lines = verdicts.map((verdict) => {
         const mark = verdict.isCorrect ? "✅" : "❌";
         const need = verdict.commaNeeded ? "запятая нужна" : "запятая не нужна";
+
         return [
             `${mark} Позиция ${verdict.position} — ${need}`,
             `📖 ${verdict.ruleText}`,
@@ -67,22 +68,32 @@ export function punctuationExplanationText(
 export function punctuationDifficultText(
     rules: { ruleText: string }[],
 ): string {
-    const list = rules.length > 0
-        ? rules
-            .map((rule, index) => `${index + 1}. ${rule.ruleText}`)
-            .join("\n")
-        : "Пока нет правил с положительным весом. Пройди тренировку, и здесь появятся твои сложные правила.";
+    if (rules.length === 0) {
+        return [
+            PUNCTUATION_DIFFICULT_TITLE,
+            "",
+            "Пока не выявлено трудных правил.",
+            "",
+            "Пройди тренировку, и здесь появятся твои сложные правила.",
+        ].join("\n");
+    }
 
+    const list = rules.map((rule, index) => `${index + 1}. ${rule.ruleText}`).join("\n");
     return `${PUNCTUATION_DIFFICULT_TITLE}\n\nЭто правила, которые даются тебе тяжелее всего:\n\n${list}`;
 }
 
 export function punctuationSessionResultText(result: PunctuationResult): string {
-    const wrongRules = result.wrongRules.length > 0
-        ? result.wrongRules
-            .map((ruleText, index) => `${index + 1}. ${ruleText}`)
-            .join("\n")
-        : "Ошибок не было!";
-    const statisticsMessage = result.wrongRules.length > 0
+    const hasErrors = result.wrongRules.length > 0;
+    const errorsSection = hasErrors
+        ? [
+            "⚠️ Правила, в которых ты ошибался:",
+            "",
+            result.wrongRules
+                .map((ruleText, index) => `${index + 1}. ${ruleText}`)
+                .join("\n"),
+        ]
+        : [ "✅ Ошибок не было!" ];
+    const statisticsMessage = hasErrors
         ? "Я уже обновил твою статистику и повысил вес этих правил. В следующий раз мы обязательно отработаем предложения с ними!"
         : "Твоя статистика обновлена. Отличная работа!";
 
@@ -93,9 +104,7 @@ export function punctuationSessionResultText(result: PunctuationResult): string 
         `• Пройдено предложений: ${result.answered}`,
         `• Полностью верных ответов: ${result.fullyCorrect}`,
         "",
-        "⚠️ Правила, в которых ты ошибся сегодня:",
-        "",
-        wrongRules,
+        ...errorsSection,
         "",
         statisticsMessage,
     ].join("\n");

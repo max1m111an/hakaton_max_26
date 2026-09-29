@@ -37,7 +37,7 @@ export function trainingQuestionKeyboard(
 
     rows.push([
         Keyboard.button.callback(
-            "Закончить",
+            "🛑 Закончить",
             `${CALLBACKS.ORTHOEPY_FINISH_PREFIX}${sessionId}`,
         ),
     ]);
