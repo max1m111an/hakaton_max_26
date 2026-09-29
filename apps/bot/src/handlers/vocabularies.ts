@@ -1,10 +1,10 @@
-import type { Bot, Context } from "@maxhub/max-bot-api";
+﻿import type { Bot, Context } from "@maxhub/max-bot-api";
 import { Keyboard } from "@maxhub/max-bot-api";
 import {
     CALLBACKS,
     VOCABULARIES_ANSWER_PATTERN,
     VOCABULARIES_FINISH_PATTERN,
-} from "../constants/callbacks.js";
+} from "@bot/constants/callbacks.js";
 import {
     beginTrainingAnswer,
     clearTrainingSession,
@@ -18,12 +18,13 @@ import {
     recordTrainingAnswer,
     setCurrentOptions,
     updateWordWeight,
-} from "../vocabularies-service.js";
+} from "@bot/vocabularies-service.js";
 import {
     backToVocabulariesMenuKeyboard,
     vocabulariesMenuKeyboard,
     vocabulariesQuestionKeyboard,
-} from "../keyboards/vocabularies.js";
+} from "@bot/keyboards/vocabularies.js";
+import { VOCABULARIES_STATISTICS_ERROR } from "@assets/text/vocabularies.js";
 import {
     VOCABULARIES_EMPTY_TEXT,
     VOCABULARIES_MENU_TEXT,
@@ -31,9 +32,9 @@ import {
     vocabulariesFeedbackText,
     vocabulariesQuestionText,
     vocabulariesResultText,
-} from "../texts/vocabularies.js";
-import { MAIN_MENU_TEXT } from "../texts/main-menu.js";
-import { mainMenuKeyboard } from "../keyboards/main-menu.js";
+} from "@bot/texts/vocabularies.js";
+import { MAIN_MENU_TEXT } from "@bot/texts/main-menu.js";
+import { mainMenuKeyboard } from "@bot/keyboards/main-menu.js";
 
 type InlineKeyboard = ReturnType<typeof Keyboard.inlineKeyboard>;
 
@@ -196,7 +197,7 @@ async function handleTrainingAnswer(ctx: Context): Promise<void> {
         clearTrainingSession(userId);
         await replaceMessage(
             ctx,
-            "Не удалось обновить статистику тренировки. Попробуй начать её ещё раз.",
+            VOCABULARIES_STATISTICS_ERROR,
             backToVocabulariesMenuKeyboard(),
         );
     }

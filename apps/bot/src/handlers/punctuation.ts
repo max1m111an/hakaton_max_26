@@ -1,11 +1,11 @@
-import type { Bot, Context } from "@maxhub/max-bot-api";
+﻿import type { Bot, Context } from "@maxhub/max-bot-api";
 import { Keyboard } from "@maxhub/max-bot-api";
 import {
     CALLBACKS,
     PUNCTUATION_EXPLAIN_PATTERN,
     PUNCTUATION_FINISH_PATTERN,
     PUNCTUATION_NEXT_PATTERN,
-} from "../constants/callbacks.js";
+} from "@bot/constants/callbacks.js";
 import {
     advanceTask,
     applyVerdictWeights,
@@ -20,8 +20,8 @@ import {
     pickNextTask,
     positionsOf,
     recordAnswer,
-} from "../punctuation-service.js";
-import type { PunctuationSession } from "../punctuation-service.js";
+} from "@bot/punctuation-service.js";
+import type { PunctuationSession } from "@bot/punctuation-service.js";
 import {
     backToPunctuationMenuKeyboard,
     punctuationAnswerKeyboard,
@@ -29,7 +29,12 @@ import {
     punctuationMenuKeyboard,
     punctuationQuestionKeyboard,
     punctuationResultKeyboard,
-} from "../keyboards/punctuation.js";
+} from "@bot/keyboards/punctuation.js";
+import {
+    PUNCTUATION_ALREADY_ANSWERED,
+    PUNCTUATION_AVAILABLE_POSITIONS_HINT,
+    PUNCTUATION_AVAILABLE_POSITIONS_PREFIX,
+} from "@assets/text/punctuation.js";
 import {
     PUNCTUATION_MENU_TEXT,
     PUNCTUATION_NO_RULES_TEXT,
@@ -40,9 +45,9 @@ import {
     punctuationQuestionText,
     punctuationResultText,
     punctuationSessionResultText,
-} from "../texts/punctuation.js";
-import { MAIN_MENU_TEXT } from "../texts/main-menu.js";
-import { mainMenuKeyboard } from "../keyboards/main-menu.js";
+} from "@bot/texts/punctuation.js";
+import { MAIN_MENU_TEXT } from "@bot/texts/main-menu.js";
+import { mainMenuKeyboard } from "@bot/keyboards/main-menu.js";
 
 type InlineKeyboard = ReturnType<typeof Keyboard.inlineKeyboard>;
 
@@ -155,7 +160,7 @@ async function handleAnswerText(ctx: Context, text: string | null | undefined): 
 
     if (session.evaluation !== null) {
         await ctx.reply(
-            "Это предложение уже засчитано. Нажми «➡️ Следующее», чтобы взять следующее, или «🛑 Закончить».",
+            PUNCTUATION_ALREADY_ANSWERED,
             { attachments: [ punctuationAnswerKeyboard(session.id) ] },
         );
         return;
@@ -172,7 +177,7 @@ async function handleAnswerText(ctx: Context, text: string | null | undefined): 
     const available = new Set(positionsOf(session.task));
     if (positions.some((position) => !available.has(position))) {
         await ctx.reply(
-            `В этом предложении есть позиции: ${[ ...available ].join(", ")}. Ответь только этими цифрами слитно.`,
+            `${PUNCTUATION_AVAILABLE_POSITIONS_PREFIX} ${[ ...available ].join(", ")}. ${PUNCTUATION_AVAILABLE_POSITIONS_HINT}`,
             { attachments: [ punctuationQuestionKeyboard(session.id) ] },
         );
         return;

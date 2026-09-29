@@ -1,5 +1,5 @@
-import sql from "@database/db_engine.ts";
-import { ensureUser } from "./user-service.js";
+﻿import sql from "@database/db_engine.ts";
+import { ensureUser } from "@bot/user-service.js";
 
 export const DEFAULT_RULE_WEIGHT = 0;
 export const CORRECT_POSITION_WEIGHT_DELTA = 5;

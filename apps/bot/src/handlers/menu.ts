@@ -1,8 +1,8 @@
-import type { Bot } from "@maxhub/max-bot-api";
-import { CALLBACKS } from "../constants/callbacks.js";
-import { showOrthoepyMenu } from "./orthoepy.js";
-import { showVocabulariesMenu } from "./vocabularies.js";
-import { showPunctuationMenu } from "./punctuation.js";
+﻿import type { Bot } from "@maxhub/max-bot-api";
+import { CALLBACKS } from "@bot/constants/callbacks.js";
+import { showOrthoepyMenu } from "@bot/handlers/orthoepy.js";
+import { showVocabulariesMenu } from "@bot/handlers/vocabularies.js";
+import { showPunctuationMenu } from "@bot/handlers/punctuation.js";
 
 export function registerMenu(bot: Bot): void {
     bot.action(CALLBACKS.MENU_ORTHOEPY, showOrthoepyMenu);
