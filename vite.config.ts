@@ -7,6 +7,7 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": path.resolve(import.meta.dirname, "./apps"),
+            "@assets": path.resolve(import.meta.dirname, "./apps/assets"),
             "@bot": path.resolve(import.meta.dirname, "./apps/bot"),
             "@utils": path.resolve(import.meta.dirname, "./apps/utils"),
             "@database": path.resolve(import.meta.dirname, "./apps/database"),

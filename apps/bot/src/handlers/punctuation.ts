@@ -31,6 +31,11 @@ import {
     punctuationResultKeyboard,
 } from "../keyboards/punctuation.js";
 import {
+    PUNCTUATION_ALREADY_ANSWERED,
+    PUNCTUATION_AVAILABLE_POSITIONS_HINT,
+    PUNCTUATION_AVAILABLE_POSITIONS_PREFIX,
+} from "@assets/text/punctuation.js";
+import {
     PUNCTUATION_MENU_TEXT,
     PUNCTUATION_NO_RULES_TEXT,
     PUNCTUATION_NO_TASKS_TEXT,
@@ -155,7 +160,7 @@ async function handleAnswerText(ctx: Context, text: string | null | undefined): 
 
     if (session.evaluation !== null) {
         await ctx.reply(
-            "Это предложение уже засчитано. Нажми «➡️ Следующее», чтобы взять следующее, или «🛑 Закончить».",
+            PUNCTUATION_ALREADY_ANSWERED,
             { attachments: [ punctuationAnswerKeyboard(session.id) ] },
         );
         return;
@@ -172,7 +177,7 @@ async function handleAnswerText(ctx: Context, text: string | null | undefined): 
     const available = new Set(positionsOf(session.task));
     if (positions.some((position) => !available.has(position))) {
         await ctx.reply(
-            `В этом предложении есть позиции: ${[ ...available ].join(", ")}. Ответь только этими цифрами слитно.`,
+            `${PUNCTUATION_AVAILABLE_POSITIONS_PREFIX} ${[ ...available ].join(", ")}. ${PUNCTUATION_AVAILABLE_POSITIONS_HINT}`,
             { attachments: [ punctuationQuestionKeyboard(session.id) ] },
         );
         return;

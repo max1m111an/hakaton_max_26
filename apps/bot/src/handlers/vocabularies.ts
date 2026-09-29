@@ -24,6 +24,7 @@ import {
     vocabulariesMenuKeyboard,
     vocabulariesQuestionKeyboard,
 } from "../keyboards/vocabularies.js";
+import { VOCABULARIES_STATISTICS_ERROR } from "@assets/text/vocabularies.js";
 import {
     VOCABULARIES_EMPTY_TEXT,
     VOCABULARIES_MENU_TEXT,
@@ -196,7 +197,7 @@ async function handleTrainingAnswer(ctx: Context): Promise<void> {
         clearTrainingSession(userId);
         await replaceMessage(
             ctx,
-            "Не удалось обновить статистику тренировки. Попробуй начать её ещё раз.",
+            VOCABULARIES_STATISTICS_ERROR,
             backToVocabulariesMenuKeyboard(),
         );
     }

@@ -1,11 +1,33 @@
 import type { TrainingResult, TrainingWord } from "@bot/orthoepy-service.js";
+import {
+    ORTHOEPY_CORRECT_PREFIX,
+    ORTHOEPY_DIFFICULT_HEADER,
+    ORTHOEPY_DIFFICULT_TITLE,
+    ORTHOEPY_EMPTY_TEXT,
+    ORTHOEPY_MENU_TEXT,
+    ORTHOEPY_NO_DIFFICULT_HINT,
+    ORTHOEPY_NO_DIFFICULT_TITLE,
+    ORTHOEPY_QUESTION_TEXT,
+    ORTHOEPY_RESULT_ANSWERED,
+    ORTHOEPY_RESULT_ALL_GOOD,
+    ORTHOEPY_RESULT_CORRECT,
+    ORTHOEPY_RESULT_ERRORS_HEADER,
+    ORTHOEPY_RESULT_NO_ERRORS,
+    ORTHOEPY_RESULT_STATS_TITLE,
+    ORTHOEPY_RESULT_STATS_UPDATED,
+    ORTHOEPY_RESULT_TITLE,
+    ORTHOEPY_STATUS_CORRECT,
+    ORTHOEPY_STATUS_INCORRECT,
+} from "@assets/text/orthoepy.js";
 
-export const ORTHOEPY_MENU_TEXT = "🗣 Орфоэпия\n\nВыбери режим тренировки:";
-export const ORTHOEPY_EMPTY_TEXT = "В таблице орфоэпии пока нет слов.";
-export const ORTHOEPY_DIFFICULT_TITLE = "📕 Твой личный антирейтинг (Орфоэпия)";
+export {
+    ORTHOEPY_DIFFICULT_TITLE,
+    ORTHOEPY_EMPTY_TEXT,
+    ORTHOEPY_MENU_TEXT,
+};
 
 export function orthoepyQuestionText(word: string): string {
-    return `Выбери правильное ударение: ${word.toUpperCase()}`;
+    return `${ORTHOEPY_QUESTION_TEXT} ${word.toUpperCase()}`;
 }
 
 export function orthoepyFeedbackText(
@@ -13,8 +35,8 @@ export function orthoepyFeedbackText(
     correctWord: string,
     nextWord: string,
 ): string {
-    const status = isCorrect ? "✅ Верно!" : "❌ Ошибка!";
-    return `${status}\n\nПравильно: ${correctWord}\n\n${orthoepyQuestionText(nextWord)}`;
+    const status = isCorrect ? ORTHOEPY_STATUS_CORRECT : ORTHOEPY_STATUS_INCORRECT;
+    return `${status}\n\n${ORTHOEPY_CORRECT_PREFIX} ${correctWord}\n\n${orthoepyQuestionText(nextWord)}`;
 }
 
 export function orthoepyDifficultText(words: TrainingWord[]): string {
@@ -22,35 +44,35 @@ export function orthoepyDifficultText(words: TrainingWord[]): string {
         return [
             ORTHOEPY_DIFFICULT_TITLE,
             "",
-            "Пока не выявлено трудных слов.",
+            ORTHOEPY_NO_DIFFICULT_TITLE,
             "",
-            "Пройди тренировку, и здесь появятся твои сложные слова.",
+            ORTHOEPY_NO_DIFFICULT_HINT,
         ].join("\n");
     }
 
     const list = words.map((word, index) => `${index + 1}. ${word.word}`).join("\n\n");
-    return `${ORTHOEPY_DIFFICULT_TITLE}\n\nЭто слова, которые даются тебе тяжелее всего:\n\n${list}`;
+    return `${ORTHOEPY_DIFFICULT_TITLE}\n\n${ORTHOEPY_DIFFICULT_HEADER}\n\n${list}`;
 }
 
 export function trainingResultText(result: TrainingResult): string {
     const hasErrors = result.wrongWords.length > 0;
     const errorsSection = hasErrors
         ? [
-            "⚠️ Слова, в которых ты ошибся сегодня:",
+            ORTHOEPY_RESULT_ERRORS_HEADER,
             "",
             result.wrongWords.join("\n\n"),
         ]
-        : [ "✅ Ошибок не было!" ];
+        : [ ORTHOEPY_RESULT_NO_ERRORS ];
     const statisticsMessage = hasErrors
-        ? "Я уже обновил твою статистику и повысил вес этих слов. В следующий раз мы обязательно их отработаем!"
-        : "Твоя статистика обновлена. Отличная работа!";
+        ? ORTHOEPY_RESULT_STATS_UPDATED
+        : ORTHOEPY_RESULT_ALL_GOOD;
 
     return [
-        "🏁 Тренировка завершена!",
+        ORTHOEPY_RESULT_TITLE,
         "",
-        "📊 Твои результаты за сессию:",
-        `• Пройдено слов: ${result.answered}`,
-        `• Верных ответов: ${result.correctAnswers}`,
+        ORTHOEPY_RESULT_STATS_TITLE,
+        `${ORTHOEPY_RESULT_ANSWERED} ${result.answered}`,
+        `${ORTHOEPY_RESULT_CORRECT} ${result.correctAnswers}`,
         "",
         ...errorsSection,
         "",

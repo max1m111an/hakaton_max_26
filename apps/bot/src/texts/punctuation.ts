@@ -1,11 +1,40 @@
 import type { PunctuationResult, PunctuationTask, PositionVerdict } from "@bot/punctuation-service.js";
 import { buildPunctuatedText } from "@bot/punctuation-service.js";
+import {
+    PUNCTUATION_ANSWER_HINT,
+    PUNCTUATION_COMMA_NEEDED,
+    PUNCTUATION_COMMA_NOT_NEEDED,
+    PUNCTUATION_CORRECT_PREFIX,
+    PUNCTUATION_DIFFICULT_HEADER,
+    PUNCTUATION_DIFFICULT_TITLE,
+    PUNCTUATION_EXPLANATION_TITLE,
+    PUNCTUATION_INSTRUCTION,
+    PUNCTUATION_MENU_TEXT,
+    PUNCTUATION_NO_DIFFICULT_HINT,
+    PUNCTUATION_NO_DIFFICULT_TITLE,
+    PUNCTUATION_NO_RULES_TEXT,
+    PUNCTUATION_NO_TASKS_TEXT,
+    PUNCTUATION_POSITION_PREFIX,
+    PUNCTUATION_RESULT_ANSWERED,
+    PUNCTUATION_RESULT_ALL_GOOD,
+    PUNCTUATION_RESULT_CORRECT,
+    PUNCTUATION_RESULT_ERRORS_HEADER,
+    PUNCTUATION_RESULT_NO_ERRORS,
+    PUNCTUATION_RESULT_STATS_TITLE,
+    PUNCTUATION_RESULT_STATS_UPDATED,
+    PUNCTUATION_RESULT_TITLE,
+    PUNCTUATION_RULE_PREFIX,
+    PUNCTUATION_STATUS_CORRECT,
+    PUNCTUATION_STATUS_INCORRECT,
+} from "@assets/text/punctuation.js";
 
-export const PUNCTUATION_MENU_TEXT = "✍️ Пунктуация\n\nВыбери режим тренировки:";
-export const PUNCTUATION_NO_RULES_TEXT = "В таблице правил пунктуации пока нет ни одного правила.";
-export const PUNCTUATION_NO_TASKS_TEXT = "В таблице предложений пока нет ни одного предложения.";
-export const PUNCTUATION_DIFFICULT_TITLE = "📕 Твой личный антирейтинг (Пунктуация)";
-export const PUNCTUATION_INSTRUCTION = "Расставь запятые. Отправь слитно номера позиций, где нужна запятая, без пробелов и знаков:";
+export {
+    PUNCTUATION_DIFFICULT_TITLE,
+    PUNCTUATION_INSTRUCTION,
+    PUNCTUATION_MENU_TEXT,
+    PUNCTUATION_NO_RULES_TEXT,
+    PUNCTUATION_NO_TASKS_TEXT,
+};
 
 export function punctuationQuestionText(task: PunctuationTask): string {
     return [
@@ -15,18 +44,18 @@ export function punctuationQuestionText(task: PunctuationTask): string {
 }
 
 export function punctuationAnswerHintText(): string {
-    return "Отправь только цифры слитно, без пробелов, запятых и других символов. Например: 125";
+    return PUNCTUATION_ANSWER_HINT;
 }
 
 export function punctuationResultText(
     task: PunctuationTask,
     isFullyCorrect: boolean,
 ): string {
-    const status = isFullyCorrect ? "✅ Верно!" : "❌ Ошибка!";
+    const status = isFullyCorrect ? PUNCTUATION_STATUS_CORRECT : PUNCTUATION_STATUS_INCORRECT;
     return [
         status,
         "",
-        `Правильно: ${buildPunctuatedText(task.maskedText, task.correctAnswers)}`,
+        `${PUNCTUATION_CORRECT_PREFIX} ${buildPunctuatedText(task.maskedText, task.correctAnswers)}`,
     ].join("\n");
 }
 
@@ -47,17 +76,17 @@ export function punctuationExplanationText(
     verdicts: PositionVerdict[],
 ): string {
     const lines = verdicts.map((verdict) => {
-        const mark = verdict.isCorrect ? "✅" : "❌";
-        const need = verdict.commaNeeded ? "запятая нужна" : "запятая не нужна";
+        const mark = verdict.isCorrect ? PUNCTUATION_STATUS_CORRECT : PUNCTUATION_STATUS_INCORRECT;
+        const need = verdict.commaNeeded ? PUNCTUATION_COMMA_NEEDED : PUNCTUATION_COMMA_NOT_NEEDED;
 
         return [
-            `${mark} Позиция ${verdict.position} — ${need}`,
-            `📖 ${verdict.ruleText}`,
+            `${mark} ${PUNCTUATION_POSITION_PREFIX} ${verdict.position} — ${need}`,
+            `${PUNCTUATION_RULE_PREFIX} ${verdict.ruleText}`,
         ].join("\n");
     });
 
     return [
-        "📖 Подробный разбор",
+        PUNCTUATION_EXPLANATION_TITLE,
         "",
         punctuationUserText(task, verdicts),
         "",
@@ -72,37 +101,37 @@ export function punctuationDifficultText(
         return [
             PUNCTUATION_DIFFICULT_TITLE,
             "",
-            "Пока не выявлено трудных правил.",
+            PUNCTUATION_NO_DIFFICULT_TITLE,
             "",
-            "Пройди тренировку, и здесь появятся твои сложные правила.",
+            PUNCTUATION_NO_DIFFICULT_HINT,
         ].join("\n");
     }
 
     const list = rules.map((rule, index) => `${index + 1}. ${rule.ruleText}`).join("\n");
-    return `${PUNCTUATION_DIFFICULT_TITLE}\n\nЭто правила, которые даются тебе тяжелее всего:\n\n${list}`;
+    return `${PUNCTUATION_DIFFICULT_TITLE}\n\n${PUNCTUATION_DIFFICULT_HEADER}\n\n${list}`;
 }
 
 export function punctuationSessionResultText(result: PunctuationResult): string {
     const hasErrors = result.wrongRules.length > 0;
     const errorsSection = hasErrors
         ? [
-            "⚠️ Правила, в которых ты ошибался:",
+            PUNCTUATION_RESULT_ERRORS_HEADER,
             "",
             result.wrongRules
                 .map((ruleText, index) => `${index + 1}. ${ruleText}`)
                 .join("\n"),
         ]
-        : [ "✅ Ошибок не было!" ];
+        : [ PUNCTUATION_RESULT_NO_ERRORS ];
     const statisticsMessage = hasErrors
-        ? "Я уже обновил твою статистику и повысил вес этих правил. В следующий раз мы обязательно отработаем предложения с ними!"
-        : "Твоя статистика обновлена. Отличная работа!";
+        ? PUNCTUATION_RESULT_STATS_UPDATED
+        : PUNCTUATION_RESULT_ALL_GOOD;
 
     return [
-        "🏁 Тренировка завершена!",
+        PUNCTUATION_RESULT_TITLE,
         "",
-        "📊 Твои результаты за сессию:",
-        `• Пройдено предложений: ${result.answered}`,
-        `• Полностью верных ответов: ${result.fullyCorrect}`,
+        PUNCTUATION_RESULT_STATS_TITLE,
+        `${PUNCTUATION_RESULT_ANSWERED} ${result.answered}`,
+        `${PUNCTUATION_RESULT_CORRECT} ${result.fullyCorrect}`,
         "",
         ...errorsSection,
         "",

@@ -24,6 +24,7 @@ import {
     orthoepyMenuKeyboard,
     trainingQuestionKeyboard,
 } from "../keyboards/orthoepy.js";
+import { ORTHOEPY_STATISTICS_ERROR } from "@assets/text/orthoepy.js";
 import {
     ORTHOEPY_EMPTY_TEXT,
     ORTHOEPY_MENU_TEXT,
@@ -196,7 +197,7 @@ async function handleTrainingAnswer(ctx: Context): Promise<void> {
         clearTrainingSession(userId);
         await replaceMessage(
             ctx,
-            "Не удалось обновить статистику тренировки. Попробуй начать её ещё раз.",
+            ORTHOEPY_STATISTICS_ERROR,
             backToOrthoepyMenuKeyboard(),
         );
     }
