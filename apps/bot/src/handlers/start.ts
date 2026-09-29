@@ -1,5 +1,5 @@
 import type { Bot } from "@maxhub/max-bot-api";
-import { ensureUser } from "../orthoepy-service.js";
+import { ensureUser } from "../user-service.js";
 import { MAIN_MENU_TEXT } from "../texts/main-menu.js";
 import { mainMenuKeyboard } from "../keyboards/main-menu.js";
 

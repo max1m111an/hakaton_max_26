@@ -6,10 +6,41 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
 
+const styleRules = {
+    "semi": [ "error", "always" ],
+    "comma-dangle": [ "error", "always-multiline" ],
+    "indent": [ "error", 4 ],
+    "quotes": [ "error", "double", { avoidEscape: true } ],
+    "object-curly-spacing": [ "error", "always" ],
+    "array-bracket-spacing": [ "error", "always" ],
+    "comma-style": [ "error", "last" ],
+    "semi-spacing": [ "error", { before: false, after: true } ],
+    "space-infix-ops": "error",
+    "space-before-blocks": "error",
+    "arrow-spacing": "error",
+    "arrow-parens": [ "error", "always" ],
+    "prefer-const": "error",
+    "no-trailing-spaces": "error",
+    "no-multi-spaces": "error",
+    "no-multiple-empty-lines": [
+        "error",
+        { max: 2, maxEOF: 1, maxBOF: 0 },
+    ],
+};
+
 export default defineConfig([
     globalIgnores([ "dist", "src-tauri/**" ]),
     js.configs.recommended,
     ...tseslint.configs.recommended,
+    {
+        files: [ "**/*.mjs" ],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: "module",
+            globals: globals.node,
+        },
+        rules: styleRules,
+    },
     {
         files: [ "**/*.{ts,tsx}" ],
         plugins: {
@@ -45,21 +76,7 @@ export default defineConfig([
                 },
             ],
             "@typescript-eslint/no-explicit-any": "off",
-            "semi": [ "error", "always" ],
-            "comma-dangle": [ "error", "always-multiline" ],
-            "indent": [ "error", 4 ],
-            "quotes": [ "error", "double", { avoidEscape: true } ],
-            "object-curly-spacing": [ "error", "always" ],
-            "array-bracket-spacing": [ "error", "always" ],
-            "comma-style": [ "error", "last" ],
-            "semi-spacing": [ "error", { before: false, after: true } ],
-            "space-infix-ops": "error",
-            "space-before-blocks": "error",
-            "arrow-spacing": "error",
-            "arrow-parens": [ "error", "always" ],
-            "prefer-const": "error",
-            "no-trailing-spaces": "error",
-            "no-multi-spaces": "error",
+            ...styleRules,
             "react/react-in-jsx-scope": "off",
             "react/jsx-indent": [ "error", 4 ],
             "react/jsx-tag-spacing": [
@@ -72,10 +89,6 @@ export default defineConfig([
                 },
             ],
             "react/jsx-curly-spacing": [ "error", { when: "always" } ],
-            "no-multiple-empty-lines": [
-                "error",
-                { max: 2, maxEOF: 1, maxBOF: 0 },
-            ],
         },
     },
 ]);

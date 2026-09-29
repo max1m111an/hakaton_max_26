@@ -1,26 +1,28 @@
 import sql from "@database/db_engine.ts";
 import { ensureUser } from "./user-service.js";
 
-export const DEFAULT_ORTHOEPY_WEIGHT = 0;
+export const DEFAULT_VOCABULARIES_WEIGHT = 0;
 export const CORRECT_ANSWER_WEIGHT_DELTA = -3;
 export const INCORRECT_ANSWER_WEIGHT_DELTA = 5;
 
-export interface TrainingWord {
+export interface VocabularyWord {
     id: number;
-    word: string;
+    inputWord: string;
+    answers: string[];
     weight: number;
 }
 
-export interface StressOptions {
+export interface AnswerOptions {
     options: string[];
     correctIndex: number;
-    correctWord: string;
+    correctAnswer: string;
 }
 
 export interface TrainingSession {
     id: string;
-    words: TrainingWord[];
+    words: VocabularyWord[];
     currentIndex: number;
+    currentOptions: AnswerOptions | null;
     answered: number;
     correctAnswers: number;
     wrongWordIds: number[];
@@ -36,76 +38,71 @@ interface WeightRow {
     weight: number;
 }
 
-const vowelSet = new Set([ ... "аеёиоуыэюя" ]);
+interface VocabularyRow {
+    id: number;
+    input_word: string;
+    answers: string[];
+    weight: number;
+}
+
 const sessions = new Map<number, TrainingSession>();
 const activeAnswers = new Set<number>();
 let sessionCounter = 0;
 
-function isVowel(character: string): boolean {
-    return vowelSet.has(character.toLowerCase());
-}
+function shuffle<T>(items: T[]): T[] {
+    const shuffled = [ ...items ];
 
-function isUppercase(character: string): boolean {
-    return character !== character.toLowerCase() && character === character.toUpperCase();
-}
-
-function markStress(characters: string[], stressIndex: number): string {
-    return characters
-        .map((character, index) => index === stressIndex
-            ? character.toUpperCase()
-            : character.toLowerCase())
-        .join("");
-}
-
-export function getStressOptions(word: string): StressOptions {
-    const characters = Array.from(word.trim());
-    if (characters.length === 0) {
-        return {
-            options: [ "" ],
-            correctIndex: 0,
-            correctWord: "",
-        };
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [ shuffled[index], shuffled[randomIndex] ] = [ shuffled[randomIndex]!, shuffled[index]! ];
     }
 
-    const vowelIndices = characters.flatMap((character, index) => isVowel(character) ? [ index ] : []);
-    const optionIndices = vowelIndices.length > 0 ? vowelIndices : [ 0 ];
-    const uppercaseVowelIndices = vowelIndices.filter((index) => isUppercase(characters[index] ?? ""));
-    const explicitStressIndex = uppercaseVowelIndices.find((index) => index !== 0)
-        ?? uppercaseVowelIndices[0];
-    const correctIndex = explicitStressIndex === undefined
-        ? 0
-        : Math.max(0, vowelIndices.indexOf(explicitStressIndex));
-    const options = optionIndices.map((index) => markStress(characters, index));
-
-    return {
-        options,
-        correctIndex,
-        correctWord: options[correctIndex] ?? options[0] ?? "",
-    };
+    return shuffled;
 }
 
 async function ensureUserWeights(userId: number): Promise<void> {
     await ensureUser(userId);
 
     await sql`
-        INSERT INTO orthoepy_wt (user_id, word_id, weight)
-        SELECT ${userId}, o.id, ${DEFAULT_ORTHOEPY_WEIGHT}
-        FROM orthoepy AS o
+        INSERT INTO vocabularies_wt (user_id, word_id, weight)
+        SELECT ${userId}, v.id, ${DEFAULT_VOCABULARIES_WEIGHT}
+        FROM vocabularies AS v
         ON CONFLICT (user_id, word_id) DO NOTHING
     `;
 }
 
-export async function loadTrainingWords(userId: number): Promise<TrainingWord[]> {
+export function correctAnswerOf(word: VocabularyWord): string {
+    return word.answers
+        .map((answer) => answer.trim())
+        .find((answer) => answer.length > 0) ?? "";
+}
+
+export function getAnswerOptions(word: VocabularyWord): AnswerOptions {
+    const answers = word.answers
+        .map((answer) => answer.trim())
+        .filter((answer) => answer.length > 0);
+    const correctAnswer = answers[0] ?? "";
+    const options = shuffle(answers.length > 0 ? answers : [ correctAnswer ]);
+
+    return {
+        options,
+        correctIndex: Math.max(0, options.indexOf(correctAnswer)),
+        correctAnswer,
+    };
+}
+
+export async function loadTrainingWords(userId: number): Promise<VocabularyWord[]> {
     await ensureUserWeights(userId);
 
-    const rows = await sql<TrainingWord[]>`
+    const rows = await sql<VocabularyRow[]>`
         SELECT
-            o.id::int AS id,
-            o.word AS word,
+            v.id::int AS id,
+            v.input_word AS input_word,
+            v.answers AS answers,
             w.weight::int AS weight
-        FROM orthoepy AS o
-        INNER JOIN orthoepy_wt AS w
-            ON w.word_id = o.id
+        FROM vocabularies AS v
+        INNER JOIN vocabularies_wt AS w
+            ON w.word_id = v.id
             AND w.user_id = ${userId}
         ORDER BY w.weight DESC, random()
     `;
@@ -113,23 +110,25 @@ export async function loadTrainingWords(userId: number): Promise<TrainingWord[]>
     return rows
         .map((row) => ({
             id: Number(row.id),
-            word: row.word.trim(),
+            inputWord: row.input_word.trim(),
+            answers: Array.isArray(row.answers) ? row.answers.map(String) : [],
             weight: Number(row.weight),
         }))
-        .filter((row) => row.word.length > 0);
+        .filter((row) => row.inputWord.length > 0);
 }
 
-export async function loadDifficultWords(userId: number): Promise<TrainingWord[]> {
+export async function loadDifficultWords(userId: number): Promise<VocabularyWord[]> {
     await ensureUserWeights(userId);
 
-    const rows = await sql<TrainingWord[]>`
+    const rows = await sql<VocabularyRow[]>`
         SELECT
-            o.id::int AS id,
-            o.word AS word,
+            v.id::int AS id,
+            v.input_word AS input_word,
+            v.answers AS answers,
             w.weight::int AS weight
-        FROM orthoepy AS o
-        INNER JOIN orthoepy_wt AS w
-            ON w.word_id = o.id
+        FROM vocabularies AS v
+        INNER JOIN vocabularies_wt AS w
+            ON w.word_id = v.id
             AND w.user_id = ${userId}
         WHERE w.weight > 0
         ORDER BY w.weight DESC, random()
@@ -138,7 +137,8 @@ export async function loadDifficultWords(userId: number): Promise<TrainingWord[]
 
     return rows.map((row) => ({
         id: Number(row.id),
-        word: row.word,
+        inputWord: row.input_word.trim(),
+        answers: Array.isArray(row.answers) ? row.answers.map(String) : [],
         weight: Number(row.weight),
     }));
 }
@@ -152,7 +152,7 @@ export async function updateWordWeight(
         ? CORRECT_ANSWER_WEIGHT_DELTA
         : INCORRECT_ANSWER_WEIGHT_DELTA;
     const rows = await sql<WeightRow[]>`
-        UPDATE orthoepy_wt
+        UPDATE vocabularies_wt
         SET weight = weight + ${delta}
         WHERE user_id = ${userId}
             AND word_id = ${wordId}
@@ -164,13 +164,14 @@ export async function updateWordWeight(
 
 export function createTrainingSession(
     userId: number,
-    words: TrainingWord[],
+    words: VocabularyWord[],
 ): TrainingSession {
     sessionCounter += 1;
     const session: TrainingSession = {
         id: `${Date.now().toString(36)}-${sessionCounter.toString(36)}`,
         words: [ ...words ],
         currentIndex: 0,
+        currentOptions: null,
         answered: 0,
         correctAnswers: 0,
         wrongWordIds: [],
@@ -220,8 +221,10 @@ export function finishTrainingSession(userId: number): TrainingResult | null {
     }
 
     const wrongWords = session.wrongWordIds
-        .map((wordId) => session.words.find((word) => word.id === wordId)?.word)
-        .filter((word): word is string => word !== undefined);
+        .map((wordId) => session.words.find((word) => word.id === wordId))
+        .filter((word): word is VocabularyWord => word !== undefined)
+        .map((word) => correctAnswerOf(word))
+        .filter((word) => word.length > 0);
     const result: TrainingResult = {
         answered: session.answered,
         correctAnswers: session.correctAnswers,
@@ -231,6 +234,15 @@ export function finishTrainingSession(userId: number): TrainingResult | null {
     return result;
 }
 
-export function currentTrainingWord(session: TrainingSession): TrainingWord | undefined {
+export function currentTrainingWord(session: TrainingSession): VocabularyWord | undefined {
     return session.words[session.currentIndex];
+}
+
+export function setCurrentOptions(
+    session: TrainingSession,
+    word: VocabularyWord,
+): AnswerOptions {
+    const options = getAnswerOptions(word);
+    session.currentOptions = options;
+    return options;
 }
