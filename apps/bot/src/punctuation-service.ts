@@ -2,8 +2,8 @@
 import { ensureUser } from "@bot/user-service.js";
 
 export const DEFAULT_RULE_WEIGHT = 0;
-export const CORRECT_POSITION_WEIGHT_DELTA = 5;
-export const INCORRECT_POSITION_WEIGHT_DELTA = -3;
+export const CORRECT_POSITION_WEIGHT_DELTA = -3;
+export const INCORRECT_POSITION_WEIGHT_DELTA = 5;
 
 export interface PunctuationRule {
     id: number;
