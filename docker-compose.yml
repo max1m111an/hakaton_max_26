@@ -2,14 +2,11 @@ services:
   maxbot:
     build:
       context: .
+      target: maxbot
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
       - ".env"
-    environment:
-      DB_HOST: database
-      DB_PORT: 5432
-      DB_SCHEME: postgres
     depends_on:
       database:
         condition: service_healthy
@@ -17,14 +14,17 @@ services:
       - local
 
   database:
-    image: postgres:17-alpine
+    build:
+      context: .
+      target: database
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
       POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
       POSTGRES_PASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
       POSTGRES_DB: "${DB_NAME:?Set DB_NAME in .env}"
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - "./database/dumps:/docker-entrypoint-initdb.d:ro"
@@ -38,12 +38,15 @@ services:
       - local
 
   adminer:
-    image: adminer:4.8.1
+    build:
+      context: .
+      target: adminer
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      ADMINER_DESIGN: dracula
+      ADMINER_DESIGN: galkaev
     ports:
-      - "${ADMINER_PORT:-8080}:8080"
+      - "${ADMINER_PORT}:8080"
     depends_on:
       database:
         condition: service_healthy
