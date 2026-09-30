@@ -1,8 +1,40 @@
 {
+  "name": "hakaton_max_2026",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite --host 0.0.0.0 --port 3000",
+    "start:bot": "tsx --tsconfig tsconfig.app.json apps/bot/main.ts",
+    "build": "tsc -b && vite build",
+    "lint": "eslint ",
+    "lint:fix": "eslint --fix",
+    "preview": "vite preview",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:dev": "prisma migrate dev"
+  },
   "dependencies": {
-    "@maxhub/max-bot-api": "^0.3.1"
+    "@maxhub/max-bot-api": "^0.3.1",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.23.0",
+    "postgres": "^3.4.9",
+    "vite": "^8.3.0"
   },
   "devDependencies": {
-    "typescript": "^7.0.2"
+    "@eslint/js": "^9.7.0",
+    "@types/node": "^26.6.2",
+    "@vitejs/plugin-react": "^6.0.0",
+    "eslint": "^9.7.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "prisma": "^7.10.0",
+    "tsx": "^4.20.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.0"
   }
 }

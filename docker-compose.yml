@@ -1,87 +1,55 @@
-version: "3.9"
-
 services:
   maxbot:
+    build:
+      context: .
+      target: maxbot
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ".env"
     depends_on:
       database:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: "Dockerfile"
-      target: "maxbot"
-    env_file:
-      - ".env"
-    volumes:
-      - "./bot/:/bot/"
-      - "./database/:/app/database/"
     networks:
       - local
 
   database:
-    image: mariadb:10.5
+    build:
+      context: .
+      target: database
+      dockerfile: Dockerfile
     restart: unless-stopped
-    security_opt:
-      - seccomp:unconfined
-      - apparmor:unconfined
-    command:
-      - mariadbd
-      - --innodb-use-native-aio=0
-      - --innodb-flush-log-at-trx-commit=2
     environment:
-      MARIADB_USER: "${DB_USER}"
-      MARIADB_PASSWORD: "${DB_PASS}"
-      MARIADB_DATABASE: "${DB_NAME}"
-      MARIADB_ROOT_PASSWORD: "${DB_PASS}"
+      POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
+      POSTGRES_PASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
+      POSTGRES_DB: "${DB_NAME:?Set DB_NAME in .env}"
     ports:
-      - '3306:3306'
+      - "${DB_PORT}:5432"
     volumes:
-      - db_data:/var/lib/mysql
-      - "./database/dumps/:/docker-entrypoint-initdb.d:ro"
+      - postgres_data:/var/lib/postgresql/data
+      - "./database/dumps:/docker-entrypoint-initdb.d:ro"
     healthcheck:
-      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
-      start_period: 60s
-      interval: 10s
-      timeout: 10s
-      retries: 5
+      test: [ "CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"" ]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 12
     networks:
       - local
 
   adminer:
-    image: adminer:latest
-    restart: always
+    build:
+      context: .
+      target: adminer
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ADMINER_DESIGN: galkaev
     ports:
       - "${ADMINER_PORT}:8080"
     depends_on:
-      - database
-    networks:
-      - local
-
-  backup:
-    image: debian:bookworm-slim
-    restart: unless-stopped
-    environment:
-      DB_HOST: database
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
-    volumes:
-      - ./database/backups:/backup
-    depends_on:
       database:
         condition: service_healthy
-    command: >
-      bash -c "
-      apt-get update &&
-      apt-get install -y mariadb-client &&
-      echo 'Waiting for database with authentication...' &&
-      until mariadb-admin ping -h $$DB_HOST -u$$DB_USER -p$$DB_PASS --silent; do sleep 5; done &&
-      echo 'Database is up and authenticated!' &&
-      while true; do
-        mysqldump -h $$DB_HOST -u$$DB_USER -p$$DB_PASS $$DB_NAME | gzip > /backup/backup_$$(date +%Y%m%d_%H%M).sql.gz;
-        find /backup -type f -name '*.gz' -mtime +7 -delete;
-        sleep 21600;
-      done
-      "
     networks:
       - local
 
@@ -89,4 +57,4 @@ networks:
   local:
 
 volumes:
-  db_data:
+  postgres_data:

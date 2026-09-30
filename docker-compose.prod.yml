@@ -1,0 +1,166 @@
+services:
+  maxbot:
+    build:
+      context: .
+      target: maxbot
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ".env"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - local
+
+  database:
+    build:
+      context: .
+      target: database
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${DB_USER:?Set DB_USER in .env}"
+      POSTGRES_PASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
+      POSTGRES_DB: "${DB_NAME:?Set DB_NAME in .env}"
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - "./database/dumps:/docker-entrypoint-initdb.d:ro"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\"" ]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - local
+
+  adminer:
+    build:
+      context: .
+      target: adminer
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ADMINER_DESIGN: galkaev
+    ports:
+      - "${ADMINER_PORT}:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - local
+
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: database
+    restart: unless-stopped
+    environment:
+      PGHOST: database
+      PGPORT: "5432"
+      PGUSER: "${DB_USER:?Set DB_USER in .env}"
+      PGPASSWORD: "${DB_PASS:?Set DB_PASS in .env}"
+      PGDATABASE: "${DB_NAME:?Set DB_NAME in .env}"
+      BACKUP_DIR: /backup
+    volumes:
+      - "./database/backups:/backup"
+    depends_on:
+      database:
+        condition: service_healthy
+    stop_grace_period: 30s
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        set -o pipefail
+
+        : "$${PGHOST:=database}"
+        : "$${PGPORT:=5432}"
+        : "$${BACKUP_DIR:=/backup}"
+        : "$${BACKUP_INTERVAL:=21600}"
+        : "$${BACKUP_RETENTION_DAYS:=7}"
+        : "$${BACKUP_RETENTION_COUNT:=28}"
+
+        log() { echo "[backup] $$(date -u +%Y-%m-%dT%H:%M:%SZ) $$*"; }
+
+        cleanup() { rm -f "$$BACKUP_DIR"/*.partial 2>/dev/null || true; }
+        trap 'cleanup; exit 0' INT TERM
+        trap cleanup EXIT
+
+        wait_for_db() {
+          attempt=0
+          until pg_isready -q -h "$$PGHOST" -p "$$PGPORT" -U "$$PGUSER" -d "$$PGDATABASE"; do
+            attempt=$$((attempt + 1))
+            if [ "$$attempt" -ge 60 ]; then
+              log "ERROR: database not reachable after 300s"
+              return 1
+            fi
+            if [ "$$attempt" -eq 1 ]; then
+              log "waiting for database at $$PGHOST:$$PGPORT"
+            fi
+            sleep 5
+          done
+          log "database is ready"
+        }
+
+        make_backup() {
+          final="$$BACKUP_DIR/backup_$$(date -u +%Y%m%dT%H%M%SZ).sql.gz"
+          tmp="$$final.partial"
+          rm -f "$$tmp"
+
+          if ! pg_dump --host "$$PGHOST" --port "$$PGPORT" --username "$$PGUSER" \
+              --dbname "$$PGDATABASE" \
+              --format=plain --compress=0 --no-owner --no-privileges \
+            | gzip -9 > "$$tmp"; then
+            rm -f "$$tmp"
+            log "ERROR: pg_dump failed, nothing archived"
+            return 1
+          fi
+
+          if ! gzip -t "$$tmp"; then
+            rm -f "$$tmp"
+            log "ERROR: archive failed integrity check, discarded"
+            return 1
+          fi
+
+          size=$$(wc -c < "$$tmp")
+          if [ "$$size" -lt 128 ]; then
+            rm -f "$$tmp"
+            log "ERROR: dump is only $$size bytes, discarded"
+            return 1
+          fi
+
+          mv -f "$$tmp" "$$final"
+          log "created $$final ($$size bytes)"
+        }
+
+        rotate() {
+          find "$$BACKUP_DIR" -maxdepth 1 -type f -name 'backup_*.sql.gz' \
+            -mtime "+$$BACKUP_RETENTION_DAYS" -print -delete
+          find "$$BACKUP_DIR" -maxdepth 1 -type f -name 'backup_*.sql.gz' \
+            | sort -r | tail -n "+$$((BACKUP_RETENTION_COUNT + 1))" | xargs -r rm -f
+          find "$$BACKUP_DIR" -maxdepth 1 -type f -name '*.partial' \
+            -mmin "+$$((BACKUP_RETENTION_COUNT * BACKUP_INTERVAL / 60 + 60))" -print -delete
+        }
+
+        while true; do
+          if wait_for_db; then
+            make_backup || log "ERROR: backup attempt failed"
+            rotate
+          fi
+          sleep "$$BACKUP_INTERVAL" &
+          wait $$!
+        done
+    networks:
+      - local
+
+networks:
+  local:
+
+volumes:
+  postgres_data:

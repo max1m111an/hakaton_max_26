@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Orthoepy {
+  id      BigInt       @id @default(autoincrement())
+  word    String
+  weights OrthoepyWt[]
+
+  @@map("orthoepy")
+}
+
+model Users {
+  id                BigInt           @id
+  orthoepyWeights   OrthoepyWt[]
+  vocabularyWeights VocabulariesWt[]
+  ruleWeights       UserRuleWeight[]
+
+  @@map("users")
+}
+
+model OrthoepyWt {
+  id     BigInt @id @default(autoincrement())
+  userId BigInt @map("user_id")
+  wordId BigInt @map("word_id")
+  weight Int    @default(0)
+
+  user Users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  word Orthoepy @relation(fields: [wordId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, wordId], map: "orthoepy_wt_user_word_unique")
+  @@index([userId, weight(sort: Desc)], map: "orthoepy_wt_user_weight_idx")
+  @@map("orthoepy_wt")
+}
+
+model PunctuationRule {
+  id       BigInt           @id @default(autoincrement())
+  ruleText String           @map("rule_text")
+  weights  UserRuleWeight[]
+
+  @@map("punctuation_rules")
+}
+
+model PunctuationTask {
+  id             BigInt @id @default(autoincrement())
+  maskedText     String @map("masked_text")
+  correctAnswers Int[]  @map("correct_answers")
+  explanations   Json   @map("explanations")
+
+  @@map("punctuation_tasks")
+}
+
+model UserRuleWeight {
+  id     BigInt @id @default(autoincrement())
+  userId BigInt @map("user_id")
+  ruleId BigInt @map("rule_id")
+  weight Int    @default(0)
+
+  user Users           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  rule PunctuationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, ruleId], map: "user_rule_weights_user_rule_unique")
+  @@index([userId, weight(sort: Desc)], map: "user_rule_weights_user_weight_idx")
+  @@map("user_rule_weights")
+}
+
+model Vocabularies {
+  id        BigInt           @id @default(autoincrement())
+  inputWord String           @map("input_word")
+  answers   String[]
+  weights   VocabulariesWt[]
+
+  @@map("vocabularies")
+}
+
+model VocabulariesWt {
+  id     BigInt @id @default(autoincrement())
+  userId BigInt @map("user_id")
+  wordId BigInt @map("word_id")
+  weight Int    @default(0)
+
+  user Users        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  word Vocabularies @relation(fields: [wordId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, wordId], map: "vocabularies_wt_user_word_unique")
+  @@index([userId, weight(sort: Desc)], map: "vocabularies_wt_user_weight_idx")
+  @@map("vocabularies_wt")
+}
